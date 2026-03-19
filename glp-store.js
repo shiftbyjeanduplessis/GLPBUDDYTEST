@@ -1,53 +1,77 @@
 (function(){
-  const KEY='glpbuddy_app_state_v2', DISMISS_KEY='glpbuddy_photo_prompt_dismissed', DEMO_FLAG='glpbuddy_demo_seeded_v1';
-  const breakfastPool=['Greek yoghurt bowl with berries','Eggs on whole wheat toast','Oats with cinnamon apple','Smoothie with yoghurt and oats','Yoghurt bowl with pineapple','Eggs with tomato on toast'];
-  const lunchPool=['Chicken couscous bowl','Tuna wrap with lettuce','Leftover protein bowl','Chicken salad wrap','Tuna pasta salad','Lentil and veg soup'];
-  const dinnerPool=['Chicken paella with peppers','Lean beef stir fry','Salmon with baby marrow and couscous','Braai chicken with butternut','Game meat stew with sweet potato','Turkey mince tomato pasta','White fish tray bake'];
-  const weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const ingredientMap={'Greek yoghurt bowl with berries':{'Greek yoghurt':'7 tubs','Berries':'7 cups','Seeds':'1 pack'},'Eggs on whole wheat toast':{'Eggs':'18','Whole wheat bread':'2 loaves','Tomatoes':'5'},'Oats with cinnamon apple':{'Oats':'1 bag','Apples':'7','Cinnamon':'1 jar'},'Smoothie with yoghurt and oats':{'Greek yoghurt':'5 tubs','Oats':'1 bag','Bananas':'7'},'Yoghurt bowl with pineapple':{'Greek yoghurt':'6 tubs','Pineapple':'2','Seeds':'1 pack'},'Eggs with tomato on toast':{'Eggs':'18','Whole wheat bread':'2 loaves','Tomatoes':'7'},'Chicken couscous bowl':{'Chicken breast':'1.5 kg','Couscous':'1 box','Mixed salad veg':'5 packs'},'Tuna wrap with lettuce':{'Tuna tins':'5','Whole wheat wraps':'2 packs','Lettuce':'2'},'Leftover protein bowl':{'Extra dinner portions':'planned','Mixed salad veg':'4 packs'},'Chicken salad wrap':{'Chicken breast':'1 kg','Whole wheat wraps':'2 packs','Lettuce':'2'},'Tuna pasta salad':{'Tuna tins':'4','Whole wheat pasta':'1 bag','Cucumber':'2'},'Lentil and veg soup':{'Lentils':'1 bag','Soup veg':'2 packs','Stock':'2 cubes'},'Chicken paella with peppers':{'Chicken breast':'1.2 kg','Rice':'1 bag','Peppers':'5'},'Lean beef stir fry':{'Lean beef strips':'1.2 kg','Broccoli':'3 heads','Stir-fry veg':'3 packs'},'Salmon with baby marrow and couscous':{'Salmon fillets':'6','Baby marrow':'8','Couscous':'1 box'},'Braai chicken with butternut':{'Chicken pieces':'1.8 kg','Butternut':'2','Spices':'1 set'},'Game meat stew with sweet potato':{'Game meat':'1.5 kg','Sweet potatoes':'8','Onions':'4'},'Turkey mince tomato pasta':{'Turkey mince':'1.2 kg','Whole wheat pasta':'1 bag','Tomato passata':'2 jars'},'White fish tray bake':{'White fish fillets':'6','Mixed veg':'3 packs','Olive oil':'1 bottle'}};
-  function safeParse(v,f){try{return JSON.parse(v)}catch(e){return f}}
-  function iso(d){return new Date(d).toISOString().slice(0,10)}
-  function today(){return iso(new Date())}
-  function uid(p){return (p||'id')+'_'+Math.random().toString(36).slice(2,10)}
-  function addDays(dateStr,days){const d=new Date(dateStr+'T12:00:00'); d.setDate(d.getDate()+days); return iso(d)}
-  function getState(){return safeParse(localStorage.getItem(KEY),null)}
-  function saveState(s){localStorage.setItem(KEY,JSON.stringify(s)); return s}
-  function samplePhoto(label,bg){return 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="700" height="1000" viewBox="0 0 700 1000"><rect width="700" height="1000" fill="${bg}"/><rect x="70" y="70" width="560" height="860" rx="36" fill="rgba(255,255,255,.32)" stroke="rgba(255,255,255,.65)"/><circle cx="350" cy="280" r="76" fill="rgba(255,255,255,.72)"/><rect x="260" y="360" width="180" height="260" rx="90" fill="rgba(255,255,255,.72)"/><rect x="208" y="395" width="58" height="220" rx="29" fill="rgba(255,255,255,.62)"/><rect x="434" y="395" width="58" height="220" rx="29" fill="rgba(255,255,255,.62)"/><rect x="290" y="610" width="50" height="220" rx="25" fill="rgba(255,255,255,.62)"/><rect x="360" y="610" width="50" height="220" rx="25" fill="rgba(255,255,255,.62)"/><text x="50%" y="90" text-anchor="middle" font-family="Arial" font-size="38" fill="#fff">${label}</text></svg>`)}
-  function makeDemoState(){const startDate=addDays(today(),-180); const profile={name:'Sarah',age:40,gender:'Female',startWeight:92.6,goalWeight:74,medication:'Wegovy',dose:'1.0 mg',injectionDay:'Monday',units:'kg',theme:'Sage'}; const settings={photoFrequency:'biweekly',photoPrompts:true,reminders:true,backupMode:'local'}; const logs={}; let weight=profile.startWeight; const plateauStart=85, plateauEnd=120; for(let i=0;i<=180;i++){const date=addDays(startDate,i); const dow=new Date(date+'T12:00:00').getDay(); const shouldWeigh=!([2].includes(dow))&&Math.random()>0.18; const earlyDrop=i<plateauStart?0.08:0.03; const plateauEffect=(i>=plateauStart&&i<=plateauEnd)?-0.015:0; const jitter=(Math.random()-0.5)*0.26; weight=Math.max(77, +(weight-earlyDrop-plateauEffect+jitter).toFixed(1)); const symptoms=[]; if(i<28&&Math.random()>0.55)symptoms.push('Nausea'); if(i<60&&Math.random()>0.65)symptoms.push('Fatigue'); if(Math.random()>0.88)symptoms.push('Bloating'); if(Math.random()>0.93)symptoms.push('Headache'); const workoutDone=[1,3,5].includes(dow)&&Math.random()>0.28; const walkDone=[0,2,4,6].includes(dow)?Math.random()>0.18:Math.random()>0.35; logs[date]={date, weight:shouldWeigh?+weight.toFixed(1):null, mood:3+(Math.random()>0.55?1:0)-(Math.random()>0.92?1:0), energy:2+(Math.random()>0.4?1:0)-(symptoms.includes('Fatigue')?1:0), hunger:i<45?2:(Math.random()>0.5?2:3), water:Math.max(3,Math.min(9,Math.round(5+Math.random()*3))), workoutDone, walkDone, medicationTaken:dow===1, symptoms, note:symptoms.length?'A little off today, keeping things simple.':''}}
-    const mealPlan={id:uid('mealplan'),createdDate:addDays(today(),-2),lockedMeals:['Mon_dinner','Wed_lunch'],days:{Mon:{breakfast:'Greek yoghurt bowl with berries',lunch:'Chicken wrap with salad',dinner:'Beef mince bolognese with whole wheat pasta'},Tue:{breakfast:'Eggs on whole wheat toast',lunch:'Leftover bolognese bowl',dinner:'Chicken paella with peppers'},Wed:{breakfast:'Oats with yoghurt and banana',lunch:'Tuna salad bowl',dinner:'Salmon with baby marrow and couscous'},Thu:{breakfast:'Smoothie with yoghurt and oats',lunch:'Chicken couscous bowl',dinner:'Lean beef stir fry'},Fri:{breakfast:'Eggs and tomato on toast',lunch:'Leftover stir fry lunch bowl',dinner:'Calamari pan with rice'},Sat:{breakfast:'Yoghurt bowl with pineapple',lunch:'Chicken salad wrap',dinner:'Braai chicken with butternut'},Sun:{breakfast:'Oats with cinnamon apple',lunch:'Tuna pasta salad',dinner:'Game meat stew with sweet potato'}}};
-    const photoDates=['2025-10-01','2025-10-15','2025-11-01','2025-11-15','2025-12-01','2025-12-15','2026-01-01','2026-01-15','2026-02-01','2026-02-15','2026-03-01'];
-    const colors1=['#c58f8f','#bb9c75','#7da08f','#8e95c4'], colors2=['#9eb0cf','#9ec7bf','#d1a07a','#c69bb7'], colors3=['#7aa6b5','#b2b46d','#bc9292','#7f8db5'];
-    const progressPhotos=photoDates.map((d,i)=>({id:uid('photo'),date:d,front:samplePhoto('Front • '+d,colors1[i%4]),side:samplePhoto('Side • '+d,colors2[i%4]),back:samplePhoto('Back • '+d,colors3[i%4]),note:i===0?'Starting point':(i===photoDates.length-1?'Feeling lighter and moving better':'Steady progress')}));
-    const communityPosts=[{id:uid('post'),author:'Sarah',when:addDays(today(),-2),type:'win',text:'Hit my water goal 5 days in a row. Small win but it feels good.'},{id:uid('post'),author:'Nadine',when:addDays(today(),-5),type:'support',text:'Rough nausea day today, but still got a short walk in.'},{id:uid('post'),author:'Coach Tip',when:addDays(today(),-7),type:'tip',text:'Low appetite days still need protein. Keep something simple ready.'},{id:uid('post'),author:'Mia',when:addDays(today(),-9),type:'win',text:'Took my monthly photos today. So glad I did — the scale was not telling the full story.'}];
-    const exercise={streakWeeks:6,levelSummary:'Building confidence',weeklyTarget:3,completedThisWeek:2,currentSession:{title:'Week 12 • Full Body Session A',approxMinutes:24,movements:['Chair / bodyweight squat','Wall push-up','Supported hinge','March in place','Bird-dog']},movementLevels:[{name:'Squat',level:'Bodyweight',next:'Narrow stance'},{name:'Push',level:'Wall push-up',next:'Counter push-up'},{name:'Hinge',level:'Supported hinge',next:'Tempo hinge'},{name:'Core',level:'Dead bug',next:'Bird-dog'}]};
-    return {profile,settings,dailyLogs:logs,mealPlan,progressPhotos,communityPosts,exercise};
-  }
-  function ensureSeeded(force){const url=new URL(location.href); if(force||url.searchParams.get('demo')==='1'||!getState()){saveState(makeDemoState()); localStorage.setItem(DEMO_FLAG,'1')}}
-  function getProfile(){return (getState()||{}).profile||{}}
-  function saveProfile(p){const s=getState()||makeDemoState(); s.profile=Object.assign({},s.profile,p); saveState(s)}
-  function getSettings(){return (getState()||{}).settings||{}}
-  function saveSettings(v){const s=getState()||makeDemoState(); s.settings=Object.assign({},s.settings,v); saveState(s)}
-  function getDailyLogs(){return (getState()||{}).dailyLogs||{}}
-  function getLog(date){date=date||today(); return getDailyLogs()[date]||{date,weight:null,mood:null,energy:null,hunger:null,water:0,workoutDone:false,walkDone:false,medicationTaken:false,symptoms:[]}}
-  function saveLog(date,patch){const s=getState()||makeDemoState(); const current=s.dailyLogs[date]||getLog(date); s.dailyLogs[date]=Object.assign({},current,patch,{date}); saveState(s)}
-  function getMealPlan(){return (getState()||{}).mealPlan||null}
-  function saveMealPlan(plan){const s=getState()||makeDemoState(); s.mealPlan=plan; saveState(s)}
-  function generateMealPlan(existing){const prev=existing||getMealPlan()||{lockedMeals:[],days:{}}; const locked=new Set(prev.lockedMeals||[]); const days={}; weekdays.forEach(function(day,idx){const prior=prev.days&&prev.days[day]?prev.days[day]:{}; days[day]={}; ['breakfast','lunch','dinner'].forEach(function(slot){const key=day+'_'+slot; if(locked.has(key)&&prior[slot]){days[day][slot]=prior[slot]; return;} const pool=slot==='breakfast'?breakfastPool:(slot==='lunch'?lunchPool:dinnerPool); days[day][slot]=pool[(idx+Math.floor(Math.random()*pool.length))%pool.length];})}); const plan={id:uid('mealplan'),createdDate:today(),lockedMeals:Array.from(locked),days}; saveMealPlan(plan); return plan}
-  function toggleMealLock(day,slot){const plan=getMealPlan()||generateMealPlan(); const key=day+'_'+slot; const set=new Set(plan.lockedMeals||[]); if(set.has(key)) set.delete(key); else set.add(key); plan.lockedMeals=Array.from(set); saveMealPlan(plan); return plan}
-  function regenerateMeal(day,slot){const plan=getMealPlan()||generateMealPlan(); const key=day+'_'+slot; const set=new Set(plan.lockedMeals||[]); set.delete(key); plan.lockedMeals=Array.from(set); const pool=slot==='breakfast'?breakfastPool:(slot==='lunch'?lunchPool:dinnerPool); plan.days[day][slot]=pool[Math.floor(Math.random()*pool.length)]; saveMealPlan(plan); return plan}
-  function shoppingList(mode){mode=mode||'week'; const plan=getMealPlan()||generateMealPlan(); const tally={}; Object.values(plan.days).forEach(day=>{Object.values(day).forEach(meal=>{const items=ingredientMap[meal]||{}; Object.entries(items).forEach(([k,v])=>{if(!tally[k]) tally[k]=new Set(); tally[k].add(v);})})}); const list=Object.entries(tally).map(([name,vals])=>({name,qty:Array.from(vals).join(' + ')})); return mode==='month'?list.map(x=>({name:x.name,qty:'4 × '+x.qty})):list}
-  function getProgressPhotos(){return ((getState()||{}).progressPhotos||[]).slice().sort((a,b)=>a.date.localeCompare(b.date))}
-  function saveProgressPhotoSet(set){const s=getState()||makeDemoState(); s.progressPhotos=(s.progressPhotos||[]).filter(x=>x.date!==set.date); s.progressPhotos.push(Object.assign({id:uid('photo')},set)); s.progressPhotos.sort((a,b)=>a.date.localeCompare(b.date)); saveState(s)}
-  function getCommunityPosts(){return ((getState()||{}).communityPosts||[]).slice().sort((a,b)=>b.when.localeCompare(a.when))}
-  function addCommunityPost(post){const s=getState()||makeDemoState(); s.communityPosts=s.communityPosts||[]; s.communityPosts.unshift(Object.assign({id:uid('post'),when:today()},post)); saveState(s)}
-  function getExercise(){return (getState()||{}).exercise||{}}
-  function getWeights(limitDays){limitDays=limitDays||180; const cutoff=addDays(today(),-limitDays); return Object.values(getDailyLogs()).filter(x=>x.weight!=null&&x.date>=cutoff).sort((a,b)=>a.date.localeCompare(b.date))}
-  function progressSummary(){const profile=getProfile(); const weights=getWeights(365); const current=weights.length?weights[weights.length-1].weight:null; const first=weights.length?weights[0].weight:profile.startWeight||null; const change=current!=null&&first!=null?+(current-first).toFixed(1):null; const towardGoal=current!=null&&profile.goalWeight?Math.max(0,Math.min(100,Math.round(((profile.startWeight-current)/(profile.startWeight-profile.goalWeight))*100))):0; let streak=0; for(let i=0;i<365;i++){const d=addDays(today(),-i); if(getLog(d).weight!=null) streak++; else break} return {current,first,change,weighIns:weights.length,towardGoal,streak}}
-  function lastPhotoDate(){const arr=getProgressPhotos(); return arr.length?arr[arr.length-1].date:null}
-  function nextPhotoDue(){const settings=getSettings(); const last=lastPhotoDate(); const freq=settings.photoFrequency||'biweekly'; if(freq==='off') return null; if(!last) return today(); return addDays(last,freq==='monthly'?30:14)}
-  function photoReminderState(){const due=nextPhotoDue(); if(!due) return {show:false}; const dismissed=localStorage.getItem(DISMISS_KEY); return {show:(due<=today()&&dismissed!==today()),due}}
-  function dismissPhotoPrompt(untilTomorrow){localStorage.setItem(DISMISS_KEY, untilTomorrow?addDays(today(),1):today())}
-  function exportMealPlanMailto(){const plan=getMealPlan()||generateMealPlan(); const weekList=shoppingList('week').map(x=>`- ${x.name}: ${x.qty}`).join('%0D%0A'); const body=Object.entries(plan.days).map(([day,meals])=>`${day}%0D%0ABreakfast: ${meals.breakfast}%0D%0ALunch: ${meals.lunch}%0D%0ADinner: ${meals.dinner}`).join('%0D%0A%0D%0A'); location.href=`mailto:?subject=GLP Buddy meal plan&body=${body}%0D%0A%0D%0AShopping list%0D%0A${weekList}`}
-  function renderLineChart(canvas,points){if(!canvas) return; const ctx=canvas.getContext('2d'), w=canvas.width, h=canvas.height; ctx.clearRect(0,0,w,h); ctx.fillStyle='#f7f4ef'; ctx.fillRect(0,0,w,h); if(!points.length){ctx.fillStyle='#6b7280'; ctx.font='14px sans-serif'; ctx.fillText('No weight data yet',20,40); return;} const vals=points.map(p=>p.weight); const min=Math.min(...vals)-1, max=Math.max(...vals)+1, pad=28; ctx.strokeStyle='#d7d1c8'; ctx.lineWidth=1; for(let i=0;i<4;i++){const y=pad+i*(h-pad*2)/3; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();} ctx.strokeStyle='#5d7f70'; ctx.lineWidth=3; ctx.beginPath(); points.forEach((p,i)=>{const x=pad+(i*(w-pad*2)/Math.max(1,points.length-1)); const y=h-pad-((p.weight-min)/(max-min))*(h-pad*2); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y)}); ctx.stroke(); ctx.fillStyle='#2f463d'; points.forEach((p,i)=>{if(i%Math.ceil(points.length/6)===0||i===points.length-1){const x=pad+(i*(w-pad*2)/Math.max(1,points.length-1)); ctx.fillText(p.date.slice(5),Math.max(6,x-14),h-8)}})}
-  window.GLPStore={ensureSeeded,getState,saveState,getProfile,saveProfile,getSettings,saveSettings,getDailyLogs,getLog,saveLog,getMealPlan,saveMealPlan,generateMealPlan,toggleMealLock,regenerateMeal,shoppingList,getProgressPhotos,saveProgressPhotoSet,getCommunityPosts,addCommunityPost,getExercise,getWeights,progressSummary,nextPhotoDue,photoReminderState,dismissPhotoPrompt,exportMealPlanMailto,renderLineChart,today,addDays};
+  const KEY='glpbuddy_v2_data';
+  const todayISO=()=>new Date().toISOString().slice(0,10);
+  const addDays=(iso,days)=>{const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)};
+  const uid=()=>Math.random().toString(36).slice(2,10);
+  const defaultData=()=>({
+    profile:{name:'Sarah',age:39,startWeight:92.4,currentWeight:79.8,goalWeight:68,medication:'Mounjaro',dose:'7.5mg',injectionDay:'Monday',theme:'feminine',photoReminder:'biweekly'},
+    settings:{units:'kg',photoReminder:'biweekly'},
+    dailyLogs:{},
+    meals:{currentPlan:null,savedAt:null,lastShoppingMode:'week',favorites:[]},
+    photos:[],
+    exercise:{level:'Builder',streakWeeks:4,completedSessions:12,favorites:['Chair Squat'],lastWorkoutDate:null},
+    community:{friends:[{name:'Emma',email:'emma@example.com'},{name:'Nadine',email:'nadine@example.com'}],posts:[]},
+    badges:['First Check-In','7 Day Consistency','Hydration Builder'],
+    demoLoaded:false
+  });
+  const read=()=>{try{return JSON.parse(localStorage.getItem(KEY))||defaultData()}catch{return defaultData()}};
+  const write=(d)=>localStorage.setItem(KEY,JSON.stringify(d));
+  const ensure=(d)=>{
+    d.profile ||= defaultData().profile; d.settings ||= defaultData().settings; d.dailyLogs ||= {}; d.meals ||= defaultData().meals; d.photos ||= []; d.exercise ||= defaultData().exercise; d.community ||= defaultData().community; d.badges ||= []; return d;
+  };
+  const get=()=>ensure(read());
+  const set=(d)=>write(ensure(d));
+  const update=(fn)=>{const d=get(); fn(d); set(d); return d};
+  const logFor=(date=todayISO())=>{const d=get(); d.dailyLogs[date] ||= {date,weight:null,mood:null,energy:null,appetite:null,water:0,medicationTaken:false,walkDone:false,checkinDone:false,sideEffects:[],notes:''}; set(d); return d.dailyLogs[date];};
+  const themeVars={
+    medical:{bg:'#f4f8ff',card:'rgba(255,255,255,.86)',text:'#15365d',muted:'#56708f',line:'rgba(126,157,204,.28)',accent:'#2f76d2',accent2:'#71b7ff',glow:'rgba(47,118,210,.15)'},
+    feminine:{bg:'#fff5f8',card:'rgba(255,255,255,.78)',text:'#41263b',muted:'#86687d',line:'rgba(212,163,190,.24)',accent:'#d56a9a',accent2:'#f3afc9',glow:'rgba(213,106,154,.16)'},
+    midnight:{bg:'#181126',card:'rgba(42,31,61,.62)',text:'#f3eefe',muted:'#b5a8cc',line:'rgba(175,151,214,.18)',accent:'#8f6df5',accent2:'#cf9cff',glow:'rgba(143,109,245,.2)'},
+    executive:{bg:'#111315',card:'rgba(35,39,43,.68)',text:'#f0f2f4',muted:'#a9b0b8',line:'rgba(176,184,192,.16)',accent:'#9ca7b3',accent2:'#d6dbe0',glow:'rgba(156,167,179,.15)'},
+    nature:{bg:'#eef6ef',card:'rgba(255,255,255,.76)',text:'#274033',muted:'#64836d',line:'rgba(130,170,139,.22)',accent:'#4c8a61',accent2:'#9ed1a6',glow:'rgba(76,138,97,.15)'},
+    glass:{bg:'linear-gradient(180deg,#f8f0ff,#f0f6ff)',card:'rgba(255,255,255,.34)',text:'#2d2340',muted:'#6f6782',line:'rgba(255,255,255,.38)',accent:'#7f67db',accent2:'#b9a8ff',glow:'rgba(127,103,219,.18)'}
+  };
+  const baseMeals=[
+    ['Greek yoghurt bowl','180g yoghurt · berries · 20g granola'],['Eggs on toast','2 eggs · 1 slice toast · tomato'],['Tuna wrap','120g tuna · lettuce · wrap'],['Chicken wrap','140g chicken · salad · wrap'],['Beef bolognese','150g beef · pasta · tomato sauce'],['Chicken curry','150g chicken · rice · veg'],['Steak and sweet potato','150g steak · sweet potato · greens'],['Salmon tray bake','140g salmon · potatoes · broccoli'],['Cottage cheese toast','2 slices toast · cottage cheese · cucumber'],['Prawn paella','150g prawns · rice · peppers']
+  ];
+  const genMeal=(seed)=>{const item=baseMeals[seed%baseMeals.length]; return {id:uid(),name:item[0],details:item[1],locked:false}};
+  const generatePlan=()=>{const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; return days.map((day,i)=>({day,breakfast:genMeal(i),lunch:genMeal(i+2),dinner:genMeal(i+5)}));};
+  const ensurePlan=()=>update(d=>{if(!d.meals.currentPlan){d.meals.currentPlan=generatePlan();d.meals.savedAt=todayISO();}}).meals.currentPlan;
+  const regenerateUnlocked=(single)=>update(d=>{
+    d.meals.currentPlan ||= generatePlan();
+    d.meals.currentPlan.forEach((day,di)=>['breakfast','lunch','dinner'].forEach((slot,si)=>{
+      const m=day[slot];
+      const target=!single || (single.day===di && single.slot===slot);
+      if(target && !m.locked){day[slot]=genMeal(di*3+si+Math.floor(Math.random()*7)); day[slot].locked=false;}
+    }));
+    d.meals.savedAt=todayISO();
+  }).meals.currentPlan;
+  const shoppingList=(mode='week')=>{
+    const d=get(); const plan=d.meals.currentPlan||generatePlan(); const mult=mode==='month'?4:1; const items={};
+    plan.forEach(day=>['breakfast','lunch','dinner'].forEach(slot=>{const parts=day[slot].details.split('·').map(s=>s.trim()); parts.forEach(p=>items[p]=(items[p]||0)+mult);}));
+    return Object.entries(items).map(([name,count])=>({name,count}));
+  };
+  const loadDemo=()=>update(d=>{
+    if(d.demoLoaded) return;
+    const start=new Date(); start.setMonth(start.getMonth()-6);
+    let weight=92.4;
+    const sideFx=[[],['nausea'],['fatigue'],[],['bloating'],[],['headache'],[]];
+    for(let i=0;i<180;i++){
+      const date=new Date(start); date.setDate(start.getDate()+i); const iso=date.toISOString().slice(0,10);
+      if(i%3!==1){ weight += (i<45?-0.11:i<100?-0.07:i<145?-0.03:-0.02) + ((i%11===0)?0.25:0);
+        d.dailyLogs[iso]={date:iso,weight:+weight.toFixed(1),mood:Math.max(2,Math.min(5,3+((i%9===0)?1:0))),energy:Math.max(1,Math.min(5,2+(i>50)+(i>110)+((i%13===0)?-1:0))),appetite:Math.max(1,Math.min(5,4-(i>25)-(i>90)+((i%15===0)?1:0))),water:Math.min(8,4+(i%5)),medicationTaken:i%7===0,walkDone:i%2===0,checkinDone:true,sideEffects:sideFx[i%sideFx.length],notes:''};
+      }
+    }
+    d.profile.currentWeight=+weight.toFixed(1);
+    d.meals.currentPlan=generatePlan(); d.meals.savedAt=todayISO();
+    d.photos=['2025-10-01','2025-10-15','2025-11-01','2025-12-01','2026-01-01','2026-02-01'].map((date,idx)=>({id:uid(),date,front:`https://picsum.photos/seed/front${idx}/480/640`,side:`https://picsum.photos/seed/side${idx}/480/640`,back:`https://picsum.photos/seed/back${idx}/480/640`,note:`Check-in ${idx+1}`}));
+    d.community.posts=[
+      {id:uid(),date:todayISO(),type:'event',text:'Emma completed her weigh-in today.'},
+      {id:uid(),date:addDays(todayISO(),-1),type:'post',text:'Big win: jeans fit better this week.'},
+      {id:uid(),date:addDays(todayISO(),-2),type:'event',text:'Nadine finished her workout.'},
+      {id:uid(),date:addDays(todayISO(),-4),type:'event',text:'Sarah earned the 7 Day Consistency badge.'}
+    ];
+    d.demoLoaded=true;
+  });
+  window.GLPStore={KEY,get,set,update,logFor,todayISO,addDays,themeVars,ensurePlan,regenerateUnlocked,shoppingList,loadDemo};
 })();
