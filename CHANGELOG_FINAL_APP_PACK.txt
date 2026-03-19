@@ -1,0 +1,16 @@
+GLP Buddy FINAL APP replacement pack
+
+Included in this pack
+- glp-store.js: shared seeded data model for staging/demo use
+- glp-common.js: small UI helper layer
+- index.html: updated home with due photo prompt and populated previews
+- meals.html: saved plan, meal locking, single-meal regenerate, unlocked refresh, week/month shopping list, email export
+- progress.html: dated front/side/back photo check-ins, timeline, compare view, 6-month weight trend
+- community.html: lightweight support hub with seeded posts
+- exercise.html: populated progression state and session preview
+- settings.html: goal weight, medication, dose, injection day, photo reminder frequency
+
+Notes
+- This pack is intended for the FINAL APP folder in a staging build.
+- It is designed to make the app coherent and populated for review/testing without touching your live users.
+- Supabase/auth is intentionally left for the next workstream.
