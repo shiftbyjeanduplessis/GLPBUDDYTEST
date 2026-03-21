@@ -1,0 +1,1 @@
+Extract this zip fully, keep the PNG background files in the same folder as the HTML files, then open the HTML files locally or upload the full folder to your test site.
